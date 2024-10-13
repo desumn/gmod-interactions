@@ -13,19 +13,21 @@ Interaction = {}
 Interaction.interactions = {}
 Interaction.__index = Interaction
 
-function Interaction:new(name, class, action)
+function Interaction:new(name, class, action, reverse_action)
 	
     if(Interaction[name] == nil) then 
         table.insert(Interaction.interactions, name)
         local BasicInteraction = {
             // action[class](entity) will be invoked when an entity is interacted with
-            actions = {}
+            actions = {},
+            reverse_actions = {}
         }
-        BasicInteraction.actions[class] = action    
-
         Interaction[name] = BasicInteraction
-    else 
-        Interaction[name].actions[class] = action
+    end
+
+    Interaction[name].actions[class] = action
+    if(reverse_action ~= nil) then 
+        Interaction[name].reverse_actions[class] = reverse_action
     end
 
 end
@@ -34,6 +36,12 @@ function Interaction:IsValid(interaction, entity)
     local class = entity:GetClass()
     return Interaction[interaction].actions[class] ~= nil
 end
+
+function Interaction:IsReverseValid(interaction, entity)
+    local class = entity:GetClass()
+    return Interaction[interaction].reverse_actions[class] ~= nil
+end
+
 
 function Interaction:ValidClasses(interaction)
     local class_tab = {}
@@ -44,6 +52,11 @@ function Interaction:ValidClasses(interaction)
 end
 
 setmetatable( Interaction, {__call = Interaction.new } )
+
+
+
+
+// toggle door - open and clase door
 
 Interaction("Toggle door", "func_door", function (entity)
     
@@ -57,10 +70,28 @@ Interaction("Toggle door", "prop_door_rotating", function (entity)
     
 end)
 
-
+// press button -- press a button
 
 Interaction("Press button", "func_button", function (entity)
     
     entity:Fire("press")
+    
+end)
+
+Interaction("Press button", "func_rot_button", function (entity)
+    
+    entity:Fire("press")
+    
+end)
+
+// Hide and unhide props
+
+Interaction("Hide", "prop_dynamic", function (entity)
+    
+    entity:Fire("turnoff")
+    
+end, function (entity)
+    
+    entity:Fire("turnon")
     
 end)

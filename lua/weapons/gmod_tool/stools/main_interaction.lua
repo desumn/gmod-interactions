@@ -10,6 +10,7 @@ if CLIENT then
     TOOL.Information = {
         {name = "info", stage = 1},
         { name = "left" },
+        { name = "right"},
         { name = "reload" }
     }
 
@@ -19,6 +20,7 @@ if CLIENT then
     language.Add("tool.main_interaction.1", "Let you interact with entities.")
 
     language.Add("tool.main_interaction.left", "Interact with the entity you're looking at.")
+    language.Add("tool.main_interaction.right", "Reverse the interaction you've done with the entity you're looking at.")
     language.Add("tool.main_interaction.reload", "Print the class of the entity you're looking at in chat.")
 
 end
@@ -89,6 +91,27 @@ function TOOL:LeftClick(trace)
 
 end 
 
+function TOOL:RightClick(trace)
+    local entity = trace.Entity
+    local class = entity:GetClass()
+    local interaction = self:GetClientInfo("interaction")
+    local propagation = self:GetClientBool("propagation")
+
+    if(propagation) then 
+        while(IsValid(entity) and (not Interaction:IsReverseValid(interaction, entity))) do
+            entity = entity:GetParent()
+        end 
+    end
+
+    if(IsValid(entity)) then 
+        class = entity:GetClass()
+        if(Interaction:IsReverseValid(interaction, entity)) then 
+            Interaction[interaction].reverse_actions[class](entity)
+        end
+    end
+end 
+
+
 function TOOL:PrintInfos(ply, entity)
     local interaction = self:GetClientInfo("interaction")
     if(IsValid(entity)) then 
@@ -102,7 +125,6 @@ function TOOL:PrintInfos(ply, entity)
         end
         ply:ChatPrint(info_str)
     end 
-
 end
 
 function TOOL:Reload(trace)
