@@ -2,7 +2,6 @@ TOOL.Category = "Interactions"
 TOOL.Name = "Interactions"
 TOOL.Command = nil 
 TOOL.ConfigName = ""
-TOOL.ClientConVar["interaction_class"] = ""
 TOOL.ClientConVar["interaction"] = ""
 TOOL.ClientConVar["propagation"] = "false"
 
@@ -27,11 +26,6 @@ end
 
 if CLIENT then
 
-concommand.Add("set_interaction_class", function( ply, cmd, args, str )
-    local cv = GetConVar("main_interaction_interaction_class")
-    cv:SetString(args[1])
-end)
-
 concommand.Add("set_interaction", function( ply, cmd, args, str )
     local cv = GetConVar("main_interaction_interaction")
     cv:SetString(args[1])
@@ -48,37 +42,25 @@ function TOOL.BuildCPanel(CPanel)
 
     CPanel:Help("A certain class of entity might have a list of interaction.\n Selecting a class let you select an interaction.")
 
-    // list of classes
+    // list of interaction
 
-    local class_list = vgui.Create("DListView")
+    local interaction_list = vgui.Create("DListView")
 
-    class_list:SetSize(CPanel:GetWide(), 128)
+    interaction_list:SetSize(CPanel:GetWide(), 128)
 
-    class_list:AddColumn("Class")
-    class_list:SetMultiSelect(false)
+    interaction_list:AddColumn("Interaction")
+    interaction_list:SetMultiSelect(false)
 
-    for k, class in ipairs(Interaction.valid_classes) do
-        class_list:AddLine(class)
+    for k, interaction in ipairs(Interaction.interactions) do
+        interaction_list:AddLine(interaction)
     end
 
-    CPanel:AddItem(class_list)
+    CPanel:AddItem(interaction_list)
 
-    // list of interactions, depends on the class selected in class_list
-
-    local combo, label = CPanel:ComboBox("Interaction", "main_interaction_interaction")
-    combo:AddChoice("Please select a class", "", true)
-
-    // defined after combo, as it depends on it
-    function class_list:OnRowSelected(rowIndex, line)
-        local class = line:GetValue(1)
-        line:SetValue(1, class)
-        RunConsoleCommand("set_interaction_class", class)
-        combo:Clear()
-        for name, interaction in pairs(Interaction[class]) do
-            combo:AddChoice(name, name)
-        end
+    function interaction_list:OnRowSelected(rowIndex, line)
+        local interaction = line:GetValue(1)
+        RunConsoleCommand("set_interaction", interaction)
     end
-    
     
     CPanel:CheckBox("Propagate", "main_interaction_propagation")
     CPanel:ControlHelp("If propagate is checked, the select interaction will by applied to the first valid parent of the interacted entity.")
@@ -88,19 +70,20 @@ end
 
 function TOOL:LeftClick(trace)
     local entity = trace.Entity
-    local class = self:GetClientInfo("interaction_class")
+    local class = entity:GetClass()
+    local interaction = self:GetClientInfo("interaction")
     local propagation = self:GetClientBool("propagation")
 
-    if(propagation) then
-        while (IsValid(entity) and entity:GetClass() ~= class) do
-            entity = entity:GetParent()        
-        end
-    end 
+    if(propagation) then 
+        while(IsValid(entity) and (not Interaction:IsValid(interaction, entity))) do
+            entity = entity:GetParent()
+        end 
+    end
 
-    if(IsValid(entity) and entity:GetClass() == class) then 
-        local interaction = self:GetClientInfo("interaction")
-        if(interaction ~= "") then 
-            Interaction[class][interaction].action(entity)
+    if(IsValid(entity)) then 
+        class = entity:GetClass()
+        if(Interaction:IsValid(interaction, entity)) then 
+            Interaction[interaction].actions[class](entity)
         end
     end
 

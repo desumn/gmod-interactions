@@ -10,27 +10,31 @@ log("shared autorun executing")
 // Interacting are actions taken on an entity
 
 Interaction = {}
-Interaction.valid_classes = {}
+Interaction.interactions = {}
 Interaction.__index = Interaction
 
 function Interaction:new(name, class, action)
-	local BasicInteraction = {
-        // action(entity) will be invoked when an entity is interacted with
-        action = action or (function (entity)
+	
+    if(Interaction[name] == nil) then 
+        table.insert(Interaction.interactions, name)
+        local BasicInteraction = {
+            // action[class](entity) will be invoked when an entity is interacted with
+            actions = {}
+        }
+        BasicInteraction.actions[class] = action    
 
-        end)
-	}
-
-    if(Interaction[class] == nil) then 
-        table.insert(Interaction.valid_classes, class)
-        Interaction[class] = {}
-        Interaction[class][name] = BasicInteraction
+        Interaction[name] = BasicInteraction
     else 
-        Interaction[class][name] = BasicInteraction
+        Interaction[name].actions[class] = action
     end
 
-	setmetatable(BasicInteraction, Interaction)
 end
+
+function Interaction:IsValid(interaction, entity)
+    local class = entity:GetClass()
+    return Interaction[interaction].actions[class] ~= nil
+end
+
 
 setmetatable( Interaction, {__call = Interaction.new } )
 
@@ -39,6 +43,14 @@ Interaction("Toggle door", "func_door", function (entity)
     entity:Fire("toggle")
     
 end)
+
+Interaction("Toggle door", "prop_door_rotating", function (entity)
+    
+    entity:Fire("toggle")
+    
+end)
+
+
 
 Interaction("Press button", "func_button", function (entity)
     
