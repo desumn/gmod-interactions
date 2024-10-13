@@ -1,0 +1,10 @@
+{
+	"title"		:	"Interactions",
+	"type"		:	"tool",
+	"tags"		:	[ "build" ],
+	"ignore"	:
+	[
+		".gitignore",
+		"README.md",
+	]
+}
