@@ -35,6 +35,13 @@ function Interaction:IsValid(interaction, entity)
     return Interaction[interaction].actions[class] ~= nil
 end
 
+function Interaction:ValidClasses(interaction)
+    local class_tab = {}
+    for class, f in pairs(Interaction[interaction].actions) do
+        table.insert(class_tab, class)
+    end
+    return class_tab
+end
 
 setmetatable( Interaction, {__call = Interaction.new } )
 

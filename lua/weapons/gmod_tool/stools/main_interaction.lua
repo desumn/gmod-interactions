@@ -40,7 +40,7 @@ end
 
 function TOOL.BuildCPanel(CPanel)
 
-    CPanel:Help("A certain class of entity might have a list of interaction.\n Selecting a class let you select an interaction.")
+    CPanel:Help("An interaction might act on multiple class of entities.")
 
     // list of interaction
 
@@ -89,13 +89,27 @@ function TOOL:LeftClick(trace)
 
 end 
 
+function TOOL:PrintInfos(ply, entity)
+    local interaction = self:GetClientInfo("interaction")
+    if(IsValid(entity)) then 
+        ply:ChatPrint("You're looking at a " .. entity:GetClass())    
+    end 
+    
+    local info_str = "You may interact with: "
+    if(interaction ~= "") then 
+        for key, class in ipairs(Interaction:ValidClasses(interaction)) do
+            info_str = info_str .. class .. " " 
+        end
+        ply:ChatPrint(info_str)
+    end 
+
+end
+
 function TOOL:Reload(trace)
     local entity = trace.Entity
-    if(IsValid(entity)) then 
-        if CLIENT then 
-            LocalPlayer:ChatPrint("You're looking at a " .. entity:GetClass())
-        elseif game.SinglePlayer() then 
-            Entity(1):ChatPrint("You're looking at a " .. entity:GetClass())    
-        end
-    end 
+    if CLIENT then 
+        self:PrintInfos(LocalPlayer, entity)
+    elseif game.SinglePlayer() then 
+        self:PrintInfos(Entity(1), entity)
+    end
 end
