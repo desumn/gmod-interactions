@@ -54,44 +54,31 @@ end
 setmetatable( Interaction, {__call = Interaction.new } )
 
 
+// utility functions
+
+local function fire_noarg(input_)
+    return function (entity)
+        entity:Fire(input_)
+    end 
+end 
 
 
 // toggle door - open and clase door
 
-Interaction("Toggle door", "func_door", function (entity)
-    
-    entity:Fire("toggle")
-    
-end)
+Interaction("Toggle door", "func_door", fire_noarg("toggle"))
 
-Interaction("Toggle door", "prop_door_rotating", function (entity)
-    
-    entity:Fire("toggle")
-    
-end)
+Interaction("Toggle door", "prop_door_rotating", fire_noarg("toggle"))
+
+Interaction("Toggle door", "func_door_rotating", fire_noarg("toggle"))
+
 
 // press button -- press a button
 
-Interaction("Press button", "func_button", function (entity)
-    
-    entity:Fire("press")
-    
-end)
+Interaction("Press button", "func_button", fire_noarg("press"))
 
-Interaction("Press button", "func_rot_button", function (entity)
-    
-    entity:Fire("press")
-    
-end)
+Interaction("Press button", "func_rot_button", fire_noarg("press"))
 
 // Hide and unhide props
 
-Interaction("Hide", "prop_dynamic", function (entity)
-    
-    entity:Fire("turnoff")
-    
-end, function (entity)
-    
-    entity:Fire("turnon")
-    
-end)
+Interaction("Hide/Unhide props", "prop_dynamic", 
+            fire_noarg("turnoff"), fire_noarg("turnon"))
